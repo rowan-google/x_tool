@@ -22,13 +22,14 @@ jobs:
   # ==========================================
   build-android:
     name: Build Android APK
-    runs-on: ubuntu-latest
+    # 显式固定为 ubuntu-24.04，避免 ubuntu-latest 迁移到 Ubuntu 26 时的环境变动警告
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: '17'
@@ -68,7 +69,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -105,10 +106,10 @@ jobs:
     name: Create GitHub Release
     needs: [build-android, build-windows]
     if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download Android Artifact
         uses: actions/download-artifact@v4
