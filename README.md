@@ -134,15 +134,29 @@ flutter test
 ### 构建目标二进制
 
 ```bash
-# 构建 Windows 桌面版本
-flutter build windows
+# 本地构建 Windows Release 版本
+flutter build windows --release
 
-# 构建 Android APK
-flutter build apk --debug
+# 本地构建 Android Release APK
+flutter build apk --release
 ```
 
 ---
 
-## 6. 开源协议
+## 6. 自动化打包与发布 (CI/CD)
+
+本项目配置了 GitHub Actions 自动化工作流（`.github/workflows/build-and-release.yml`）：
+
+- **常规构建与 Artifacts 下载**：
+  - 每次推送到 `main` / `master` 分支或提交 PR 时，GitHub Actions 会自动运行单元测试并编译 **Windows x64 Release ZIP** 与 **Android Release APK**。
+  - 构建产物可在 GitHub Actions 运行记录的 **Artifacts** 区域直接下载试用。
+- **自动化发布 Release**：
+  - 推送版本标签（Tag，如 `git tag v1.0.0 && git push origin v1.0.0`）时，工作流会自动创建 GitHub Release 并上传 Windows 与 Android 的发布包。
+- **手动触发**：
+  - 支持在 GitHub Actions 页面通过 **Run workflow** 手动触发打包流程。
+
+---
+
+## 7. 开源协议
 
 本项目基于 MIT License 开源。

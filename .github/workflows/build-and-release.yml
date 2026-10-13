@@ -1,0 +1,133 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # ==========================================
+  # 1. Android Release Build
+  # ==========================================
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build Android Release APK
+        run: flutter build apk --release
+
+      - name: Rename APK for release
+        run: |
+          mkdir -p output
+          cp build/app/outputs/flutter-apk/app-release.apk output/x_tool-android-release.apk
+
+      - name: Upload Android APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: x_tool-android-apk
+          path: output/x_tool-android-release.apk
+          if-no-files-found: error
+
+  # ==========================================
+  # 2. Windows Release Build
+  # ==========================================
+  build-windows:
+    name: Build Windows x64
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests
+        run: flutter test
+
+      - name: Build Windows Release
+        run: flutter build windows --release
+
+      - name: Package Windows Release (ZIP)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path output
+          Compress-Archive -Path "build\windows\x64\runner\Release\*" -DestinationPath "output\x_tool-windows-x64.zip" -Force
+
+      - name: Upload Windows ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: x_tool-windows-zip
+          path: output/x_tool-windows-x64.zip
+          if-no-files-found: error
+
+  # ==========================================
+  # 3. GitHub Release (Triggered on v* tags)
+  # ==========================================
+  release:
+    name: Create GitHub Release
+    needs: [build-android, build-windows]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Android Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: x_tool-android-apk
+          path: release-assets
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: x_tool-windows-zip
+          path: release-assets
+
+      - name: Create GitHub Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/x_tool-android-release.apk
+            release-assets/x_tool-windows-x64.zip
+          generate_release_notes: true
+          draft: false
+          prerelease: false
