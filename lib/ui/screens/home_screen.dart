@@ -251,119 +251,122 @@ class _HomeScreenState extends State<HomeScreen> {
     return '极强 (推荐)';
   }
 
+  Widget _buildSecurityBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: const Color(0xFF10B981).withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.circle, color: Color(0xFF10B981), size: 7),
+          SizedBox(width: 5),
+          Text(
+            '纯本地 · 零泄露',
+            style: TextStyle(fontSize: 11, color: Color(0xFF10B981), fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDesktop = MediaQuery.of(context).size.width >= 880;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth >= 880;
+    final isMobile = screenWidth < 700;
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 16,
         title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 36,
-              height: 36,
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(9),
                 boxShadow: [
                   BoxShadow(
                     color: const Color(0xFF2563EB).withValues(alpha: 0.3),
-                    blurRadius: 10,
+                    blurRadius: 8,
                     spreadRadius: 1,
                   ),
                 ],
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(9),
                 child: Image.asset(
                   'assets/images/logo.png',
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) => const Icon(
                     Icons.shield_rounded,
                     color: Color(0xFF3B82F6),
-                    size: 26,
+                    size: 24,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Text(
-                      'x_tool',
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: -0.5),
-                    ),
-                    SizedBox(width: 8),
-                    Text(
-                      'v1.0',
-                      style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-                Text(
-                  '纯本地隐私文本加解密',
-                  style: TextStyle(fontSize: 11, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.8)),
-                ),
-              ],
+            const SizedBox(width: 10),
+            const Text(
+              'x_tool',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: -0.5),
             ),
-            const SizedBox(width: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+            if (!isMobile) ...[
+              const SizedBox(width: 8),
+              const Text(
+                'v1.0',
+                style: TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.bold),
               ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.circle, color: Color(0xFF10B981), size: 7),
-                  SizedBox(width: 5),
-                  Text(
-                    '纯本地 · 零泄露',
-                    style: TextStyle(fontSize: 11, color: Color(0xFF10B981), fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-            ),
+              const SizedBox(width: 12),
+              _buildSecurityBadge(),
+            ],
           ],
         ),
         actions: [
           IconButton(
+            visualDensity: VisualDensity.compact,
             tooltip: isDark ? '切换至浅色模式' : '切换至暗黑模式',
-            icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+            icon: Icon(isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined, size: 20),
             onPressed: () {
               themeModeNotifier.value = isDark ? ThemeMode.light : ThemeMode.dark;
             },
           ),
           IconButton(
+            visualDensity: VisualDensity.compact,
             tooltip: '安全规范与边界说明',
-            icon: const Icon(Icons.info_outline_rounded),
+            icon: const Icon(Icons.info_outline_rounded, size: 20),
             onPressed: () => SecurityInfoDialog.show(context),
           ),
           IconButton(
+            visualDensity: VisualDensity.compact,
             tooltip: '一键清除全部状态 (缩短敏感数据生命周期)',
-            icon: const Icon(Icons.delete_sweep_outlined),
+            icon: const Icon(Icons.delete_sweep_outlined, size: 20),
             onPressed: _clearAll,
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: EdgeInsets.symmetric(horizontal: isMobile ? 14 : 20, vertical: 16),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1120),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildModeSelector(),
+                  if (isMobile) ...[
+                    Center(child: _buildSecurityBadge()),
+                    const SizedBox(height: 12),
+                  ],
+                  _buildModeSelector(isMobile: isMobile),
                   const SizedBox(height: 16),
                   if (_errorMessage != null) _buildAlertBanner(_errorMessage!, isError: true),
                   if (_successMessage != null) _buildAlertBanner(_successMessage!, isError: false),
@@ -393,7 +396,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildModeSelector() {
+  Widget _buildModeSelector({bool isMobile = false}) {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
@@ -408,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: _buildTabButton(
               mode: CryptoMode.encrypt,
-              title: '文本加密 (Encrypt)',
+              title: isMobile ? '文本加密' : '文本加密 (Encrypt)',
               icon: Icons.lock_outline_rounded,
             ),
           ),
@@ -416,7 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: _buildTabButton(
               mode: CryptoMode.decrypt,
-              title: '文本解密 (Decrypt)',
+              title: isMobile ? '文本解密' : '文本解密 (Decrypt)',
               icon: Icons.lock_open_rounded,
             ),
           ),
@@ -556,20 +559,31 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                Row(
+                Wrap(
+                  spacing: 2,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     if (isEncrypt && text.isEmpty)
                       TextButton.icon(
-                        icon: const Icon(Icons.auto_awesome_rounded, size: 15),
-                        label: const Text('示例文本'),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        icon: const Icon(Icons.auto_awesome_rounded, size: 14),
+                        label: const Text('示例文本', style: TextStyle(fontSize: 12)),
                         onPressed: _loadSampleNote,
                       ),
                     TextButton.icon(
-                      icon: const Icon(Icons.content_paste_rounded, size: 15),
-                      label: const Text('粘贴'),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      icon: const Icon(Icons.content_paste_rounded, size: 14),
+                      label: const Text('粘贴', style: TextStyle(fontSize: 12)),
                       onPressed: _pasteFromClipboard,
                     ),
                     IconButton(
+                      visualDensity: VisualDensity.compact,
                       tooltip: '清空输入',
                       icon: const Icon(Icons.clear_rounded, size: 18),
                       onPressed: () => _inputController.clear(),
@@ -850,14 +864,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 if (hasOutput)
-                  Row(
+                  Wrap(
+                    spacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       FilledButton.tonalIcon(
-                        icon: Icon(_justCopied ? Icons.check_circle_rounded : Icons.copy_rounded, size: 16),
-                        label: Text(_justCopied ? '已复制！' : '复制结果'),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        icon: Icon(_justCopied ? Icons.check_circle_rounded : Icons.copy_rounded, size: 15),
+                        label: Text(_justCopied ? '已复制！' : '复制结果', style: const TextStyle(fontSize: 12)),
                         onPressed: _copyOutputToClipboard,
                       ),
                       IconButton(
+                        visualDensity: VisualDensity.compact,
                         tooltip: '清空输出',
                         icon: const Icon(Icons.clear_rounded, size: 18),
                         onPressed: () => _outputController.clear(),

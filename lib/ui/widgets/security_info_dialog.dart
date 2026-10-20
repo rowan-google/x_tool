@@ -36,8 +36,8 @@ class SecurityInfoDialog extends StatelessWidget {
           ),
         ],
       ),
-      content: SizedBox(
-        width: 540,
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 540),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

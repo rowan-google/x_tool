@@ -58,8 +58,8 @@ class _PasswordGeneratorDialogState extends State<PasswordGeneratorDialog> {
           ),
         ],
       ),
-      content: SizedBox(
-        width: 480,
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,

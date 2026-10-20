@@ -133,4 +133,38 @@ void main() {
     final text = tester.widget<TextField>(passwordField).controller!.text;
     expect(text.isNotEmpty, isTrue);
   });
+
+  testWidgets('Mobile viewport layout test (no overlap on small screen)', (WidgetTester tester) async {
+    // Set standard mobile screen size (360 x 640)
+    tester.view.physicalSize = const Size(360, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: HomeScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Verify title and badge exist cleanly
+    expect(find.text('x_tool'), findsOneWidget);
+    expect(find.text('纯本地 · 零泄露'), findsOneWidget);
+    expect(find.text('文本加密'), findsOneWidget);
+    expect(find.text('文本解密'), findsOneWidget);
+
+    // Verify action buttons in AppBar are hit-testable and don't collide
+    final infoBtn = find.byIcon(Icons.info_outline_rounded);
+    expect(infoBtn, findsOneWidget);
+    await tester.tap(infoBtn);
+    await tester.pumpAndSettle();
+    expect(find.text('安全规范与边界说明'), findsOneWidget);
+
+    // Close dialog
+    await tester.tap(find.text('我知道了'));
+    await tester.pumpAndSettle();
+  });
 }
